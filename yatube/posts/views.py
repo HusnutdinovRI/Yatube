@@ -1,3 +1,4 @@
+from sqlite3 import IntegrityError
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import redirect
@@ -109,12 +110,12 @@ def follow_index(request):
 def profile_follow(request, username):
     user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    if (Follow.objects.get_or_create(user=user, author=author)
-            or request.user.username == username):
+    try:
+        Follow.objects.get_or_create(user=user, author=author)
+    except IntegrityError:
         return redirect('posts:profile', username)
-    Follow.objects.create(user=user, author=author)
-
-    return redirect('posts:profile', username)
+    finally:
+        return redirect('posts:profile', username)
 
 
 @login_required
