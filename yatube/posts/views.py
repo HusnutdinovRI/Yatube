@@ -4,10 +4,8 @@ from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.cache import cache_page
 from .forms import PostForm, CommentForm
-from .models import Post, Group, User, Comment, Follow
-
-
-POST_PER_PAGE: int = 10
+from .models import Post, Group, User, Follow
+from .utils import paginator_page
 
 
 @cache_page(20, key_prefix='index_page')
@@ -15,43 +13,34 @@ def index(request):
 
     posts = Post.objects.all()
 
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'posts/index.html', {'page_obj': page_obj, })
+    return render(request, 'posts/index.html',
+                  {'page_obj': paginator_page(request, posts)})
 
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     posts = group.posts.all()
 
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'posts/group_list.html', {'group': group,
-                                                     'page_obj': page_obj, })
+    return render(request, 'posts/group_list.html',
+                  {'group': group, 'page_obj': paginator_page(request, posts)})
 
 
 def profile(request, username):
 
     author = get_object_or_404(User, username=username)
     posts = author.posts.all()
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
     following = Follow.objects.filter(author=author)
 
-    return render(request, 'posts/profile.html', {'author': author,
-                                                  'page_obj': page_obj,
-                                                  'following': following, })
+    return render(request, 'posts/profile.html',
+                  {'author': author,
+                   'page_obj': paginator_page(request, posts),
+                   'following': following, })
 
 
 def post_detail(request, post_id):
     posts = get_object_or_404(Post, pk=post_id)
     title = posts.text[:30]
-    comment = Comment.objects.filter(post=post_id)
+    comment = posts.comments.filter(post=post_id)
     isauthor: bool = str(posts.author) == str(request.user)
     form = CommentForm(request.POST or None)
     if not form.is_valid():
@@ -120,8 +109,7 @@ def follow_index(request):
 def profile_follow(request, username):
     user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    if (request.user.username == username
-            or Follow.objects.filter(user=user, author=author).exists()):
+    if Follow.objects.get_or_create(user=user, author=author):
         return redirect('posts:profile', username)
     Follow.objects.create(user=user, author=author)
 
