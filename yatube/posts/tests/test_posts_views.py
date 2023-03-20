@@ -207,7 +207,7 @@ class PostPagesTests(TestCase):
         response = self.authorized_client.get(
             reverse('posts:follow_index'))
         self.assertEqual(response.context['page_obj'][0].author, self.user2)
-    
+
     def test_follow(self):
         """Удостоверимся, пользователь может подписываться
         на других пользователей и новая запись появляется в ленте"""
