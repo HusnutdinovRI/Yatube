@@ -1,0 +1,22 @@
+<!-- templates/about/tech.html -->
+{% extends "base.html" %}
+{% block title %}Технологии{% endblock %}
+{% block content %}
+{% comment %} Колонки с отступом сверху и снизу {% endcomment %}
+<div class="container py-5">
+    <div class="card-body p-4 text-black">
+        <div class="mb-5">
+            <p class="lead fw-normal mb-1">Технологии использованные при разработке сайта</p>
+            <div class="p-4" style="background-color: #f8f9fa;">
+                <ul>
+                    <li class="font-italic mb-1">Python</li>
+                    <li class="font-italic mb-1">Django</li>
+                    <li class="font-italic mb-0">SQLite</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    </section>
+</div>
+{% endblock %}
