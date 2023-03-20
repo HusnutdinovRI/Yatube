@@ -64,7 +64,6 @@ class PostPagesTests(TestCase):
 
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
-        self.authorized_client.force_login(self.user2)
         cache.clear()
 
     def test_pages_uses_correct_template(self):
@@ -77,10 +76,10 @@ class PostPagesTests(TestCase):
             (reverse('posts:profile',
                      kwargs={'username': 'admin'})): 'posts/profile.html',
             (reverse('posts:post_detail',
-                     kwargs={'post_id': '2'})): 'posts/post_detail.html',
+                     kwargs={'post_id': '1'})): 'posts/post_detail.html',
             reverse('posts:post_create'): 'posts/create_post.html',
             (reverse('posts:post_edit',
-                     kwargs={'post_id': '2'})): 'posts/create_post.html',
+                     kwargs={'post_id': '1'})): 'posts/create_post.html',
         }
         for reverse_name, template in templates_page_names.items():
             with self.subTest(template=template):
@@ -195,8 +194,8 @@ class PostPagesTests(TestCase):
         """Удостоверимся, что на страницу cоздания поста
         передаётся пост форма отфильтрованая по id"""
         response = self.authorized_client.get(
-            reverse('posts:post_edit', kwargs={'post_id': '2'}))
-        self.assertEqual(response.context['form'].instance.pk, 2)
+            reverse('posts:post_edit', kwargs={'post_id': '1'}))
+        self.assertEqual(response.context['form'].instance.pk, 1)
 
     def test_follow(self):
         """Удостоверимся, пользователь может подписываться
