@@ -1,6 +1,4 @@
-from sqlite3 import IntegrityError
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.cache import cache_page
@@ -41,7 +39,7 @@ def profile(request, username):
 def post_detail(request, post_id):
     posts = get_object_or_404(Post, pk=post_id)
     title = posts.text[:30]
-    comment = posts.comments.filter(post=post_id)
+    comment = posts.comments.all()
     isauthor: bool = str(posts.author) == str(request.user)
     form = CommentForm(request.POST or None)
     if not form.is_valid():
@@ -99,23 +97,17 @@ def follow_index(request):
 
     posts = Post.objects.filter(author__following__user=user)
 
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'posts/follow.html', {'page_obj': page_obj, })
+    return render(request, 'posts/follow.html',
+                  {'page_obj': paginator_page(request, posts)})
 
 
 @login_required
 def profile_follow(request, username):
     user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    try:
+    if not request.user.username == username:
         Follow.objects.get_or_create(user=user, author=author)
-    except IntegrityError:
-        return redirect('posts:profile', username)
-    finally:
-        return redirect('posts:profile', username)
+    return redirect('posts:profile', username)
 
 
 @login_required
